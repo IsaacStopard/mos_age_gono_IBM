@@ -1,7 +1,5 @@
 # The effect of adult emergence on the age distribution of Anopheles mosquito populations: a modelling study
 
-## Authors: Isaac J Stopard, Ellie Sherrard-Smith, Ben Lambert & Thomas S Churcher
-
 This GitHub repository provides all code necessary for the paper "The effect of adult emergence on the age distribution of \textit{Anopheles} mosquito populations: a modelling study"
 
 ### Version 1 Release

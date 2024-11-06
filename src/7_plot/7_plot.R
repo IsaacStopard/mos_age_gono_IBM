@@ -22,7 +22,10 @@ EHT_sims <- readRDS("EHT_sims.rds")
 
 o <- m_in * m_prob
 
-theme_set(theme_bw() + theme(text = element_text(size = 14), legend.background = element_rect(color = NA, fill = NA)))
+theme_set(theme_bw() + 
+            theme(text = element_text(size = 14), 
+                  legend.background = element_rect(color = NA, fill = NA),
+                  legend.text = element_text(size = 14)))
 
 #####################
 ##### figure 1 #####
@@ -46,14 +49,14 @@ time_plot <- function(df){
   
   return(
     ggplot() + 
-      geom_line(data = df |> filter(sim != 1), aes(x = timestep, y = state_tot, group = sim, col = "Other puddles"), linewidth = 0.3) +
-      geom_line(data = df |> filter(sim == 1), aes(x = timestep, y = state_tot, group = sim, col = "One puddle"), linewidth = 1) +
+      geom_line(data = df |> filter(sim != 1), aes(x = timestep, y = state_tot, group = sim, col = "Other simulations"), linewidth = 0.3) +
+      geom_line(data = df |> filter(sim == 1), aes(x = timestep, y = state_tot, group = sim, col = "One simulation"), linewidth = 1) +
       geom_line(data = mean_abundance, aes(x = timestep, y = m, col = "Mean"), linewidth = 0.75) +
       ylim(0, 450) +
       theme(legend.position = "inside", legend.position.inside = c(0.1, 0.9)) +
       ylab("Mosquito abundance") + xlab("Day of the year") +
       facet_wrap(~ season) +
-      scale_colour_manual(values = c("Other puddles" = "grey30", "One puddle" = "#56B4E9", "Mean" = "black"), name = "")
+      scale_colour_manual(values = c("Other simulations" = "grey30", "One simulation" = "#56B4E9", "Mean" = "black"), name = "")
   )
 }
 
@@ -132,15 +135,15 @@ age_dist_time_plot <- function(df, sim_rep_max, time, time_diff){
            ages <- df |> filter(sim %in% seq(1, m) & timestep %in% time)
            ages <- ages |> dplyr::select(X0:X150, timestep) |> pivot_longer(X0:X150) |> 
              mutate(name = as.numeric(gsub("X", "", name)),
-                    n_puddles = paste0("Number of pooled simulations: ", m)) |> group_by(timestep, n_puddles) |> uncount(value) |> as.data.frame()
+                    n_simulations = paste0("Number of pooled simulations: ", m)) |> group_by(timestep, n_simulations) |> uncount(value) |> as.data.frame()
            return(ages)
            },
      df = df
      ) |> bind_rows()
   
-  ages$n_puddles <- factor(ages$n_puddles, levels = paste0("Number of pooled simulations: ", sort(sim_rep_max)))
+  ages$n_simulations <- factor(ages$n_simulations, levels = paste0("Number of pooled simulations: ", sort(sim_rep_max)))
   
-  mean_age <- ages |> group_by(n_puddles, timestep) |> summarise(m = mean(name))
+  mean_age <- ages |> group_by(n_simulations, timestep) |> summarise(m = mean(name))
   
   plot <- ggplot() + 
     ggridges::geom_density_ridges(data = ages, 
@@ -149,7 +152,7 @@ age_dist_time_plot <- function(df, sim_rep_max, time, time_diff){
       draw_baseline = FALSE, alpha = 0.75) +
     coord_cartesian(xlim = c(0, 40)) +
     scale_x_continuous(breaks = seq(0, max_age, 5)) +
-    facet_wrap(~n_puddles) +
+    facet_wrap(~n_simulations) +
     theme(legend.position = "none") +
     xlab("Age (days)") + ylab("Day of year") +
     scale_fill_viridis_c() +

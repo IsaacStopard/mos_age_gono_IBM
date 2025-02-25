@@ -87,12 +87,19 @@ estimate_mu <- function(i,
   mu_rate <- 1 / exp(coef(exp_model))
   
   mean <- mean(ages[,"name"])
+  sd <- sd(ages[,"name"])
+  cv <- sd/mean
   lower <- quantile(ages[,"name"], probs =  0.25)[[1]]
   upper <- quantile(ages[,"name"], probs =  0.75)[[1]]
   median <- median(ages[,"name"])
   
-  return(data.frame("mean" = mean, "mu_rate" = mu_rate[[1]], 
-                    "median" = median, "lower" = lower, "upper" = upper)
+  return(data.frame("mean" = mean,
+                    "sd_age" = sd,
+                    "cv_age" = cv,
+                    "mu_rate" = mu_rate[[1]], 
+                    "median" = median, 
+                    "lower" = lower, 
+                    "upper" = upper)
          )
 }
 

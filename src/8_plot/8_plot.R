@@ -4,6 +4,7 @@ orderly2::orderly_shared_resource("default_values.R",
 orderly2::orderly_dependency("4_process_f", "latest", c("freq_sims_p.rds", "auto_sims_p.rds", "perennial_sims_p.rds"))
 orderly2::orderly_dependency("5_EHT_autocorr", "latest", c("EHT_autocorr.rds"))
 orderly2::orderly_dependency("6_EHT_runs", "latest", c("EHT_sims.rds"))
+orderly2::orderly_dependency("7_ssm_inc_larval", "latest", c("ssm_plot_df.rds", "ssm_params.rds"))
 
 ##################
 ##### set up #####
@@ -35,7 +36,7 @@ theme_set(theme_bw() +
 
 perennial <- perennial_sims |> mutate(season = "perennial")
 
-one_peak <- freq_sims  |> filter(round(f, digits = 3) == 0.017 & a == 20) |> mutate(season = "one peak")
+one_peak <- freq_sims |> filter(round(f, digits = 3) == 0.017 & a == 20) |> mutate(season = "one peak")
 
 limits_df <- rbind(perennial, one_peak) |> group_by(timestep, sim, season) |> dplyr::select(X0:X150) |> pivot_longer(X0:X150) |> 
   mutate(name = as.numeric(gsub("X", "", name))) |> filter(value != 0)
@@ -100,17 +101,17 @@ comb_plot <- function(x1 = 100,
   plot <- list(
     geom_segment(aes(x = pos_a2[[1]], xend = x2,
                      y = pos_a2[[2]], yend = h_plot_2$tot),
-                 arrow = arrow(length = unit(0.25, "cm")), col = "#CC79A7", linewidth = 1),
+                 arrow = arrow(length = unit(0.25, "cm")), col = "#56B4E9", linewidth = 1),
     
     geom_segment(aes(x = pos_a1[[1]], xend = x1, 
                      y = pos_a1[[2]], yend = h_plot_1$tot),
-                 arrow = arrow(length = unit(0.25, "cm")), col = "#E69F00", linewidth = 1),
+                 arrow = arrow(length = unit(0.25, "cm")), col = "#56B4E9", linewidth = 1),
     
     inset_element(h_plot_2$plot +
-                    theme(plot.background = element_rect(colour = "#CC79A7", fill=NA, linewidth = 1.25)),
+                    theme(plot.background = element_rect(colour = "#56B4E9", fill=NA, linewidth = 1.25)),
                   left = pos_b2[[1]], bottom = pos_b2[[3]], right = pos_b2[[2]], top = pos_b2[[4]]),
     
-    inset_element(h_plot_1$plot + theme(plot.background = element_rect(colour = "#E69F00", fill=NA, linewidth = 1.25)),
+    inset_element(h_plot_1$plot + theme(plot.background = element_rect(colour = "#56B4E9", fill=NA, linewidth = 1.25)),
                   left = pos_b1[[1]], bottom = pos_b1[[3]], right = pos_b1[[2]], top = pos_b1[[4]])
   )
   
@@ -120,12 +121,12 @@ comb_plot <- function(x1 = 100,
 hp <- 0.325
 wp <- 0.325
 
-exp_plot_p <- time_plot(df = perennial) + labs(title = "A") + comb_plot(data = perennial, x1 = 70, x2 = 280,
-                                                                      pos_b1 = c(0.08, 0.08 + wp, 0.01, 0.01 + hp),
-                                                                      pos_a1 = c(85, 142.5),
-                                                                      pos_b2 = c(0.54, 0.54 + wp, 0.61, 0.61 + hp),
-                                                                      pos_a2 = c(265, 280))
-
+exp_plot_p <- time_plot(df = perennial) +
+  labs(title = "A") + comb_plot(data = perennial, x1 = 70, x2 = 280,
+                                                    pos_b1 = c(0.08, 0.08 + wp, 0.01, 0.01 + hp),
+                                                    pos_a1 = c(85, 142.5),
+                                                    pos_b2 = c(0.54, 0.54 + wp, 0.61, 0.61 + hp),
+                                                    pos_a2 = c(265, 280))
 
 ##### age distribution population size 
 age_dist_time_plot <- function(df, sim_rep_max, time, time_diff){
@@ -155,7 +156,7 @@ age_dist_time_plot <- function(df, sim_rep_max, time, time_diff){
     facet_wrap(~n_simulations) +
     theme(legend.position = "none") +
     xlab("Age (days)") + ylab("Day of year") +
-    scale_fill_viridis_c() +
+    scale_fill_distiller() +
     geom_segment(data = mean_age, 
                  aes(x = m, y = factor(timestep), xend = m, yend = factor(timestep + time_diff)),
                  col = "black", linewidth = 0.7, linetype = 1) +
@@ -166,47 +167,43 @@ age_dist_time_plot <- function(df, sim_rep_max, time, time_diff){
 
 age_dist_plot_p <- age_dist_time_plot(df = perennial, 
                                            sim_rep_max = c(1, 5, 20), 
-                                           time = seq(25, 360, 25), time_diff = 25) + 
-  labs(title = "B")
+                                           time = seq(25, 360, 25), time_diff = 25)
 
-p_plot <- exp_plot_p / age_dist_plot_p + 
-  plot_layout(nrow = 2, 
-              heights = c(2.5, 3))
-  
-ggsave("p_plot.pdf", 
-       p_plot,
+ggsave("age_dist_plot_p.pdf",
+       age_dist_plot_p,
        device = "pdf",
-       #width = 20, height = 25, 
-       width = 35, height = 35,
+       #width = 20, height = 25,
+       width = 20, height = 12.5,
        units = "cm")
-
-####################
-##### Figure 2 #####
-####################
 
 ######### seasonal dynamics #########
 ##### one peak per year ####
-exp_plot_s <- time_plot(df = one_peak)  + labs(title = "A") + comb_plot(data = one_peak, x1 = 25, x2 = 230,
-                                                            pos_b1 = c(0.08, 0.08 + wp, 0.01, 0.01 + hp),
-                                                            pos_a1 = c(85, 142.5),
-                                                            pos_b2 = c(0.58, 0.58 + wp, 0.6, 0.6 + hp),
-                                                            pos_a2 = c(283, 275))
+exp_plot_s <- time_plot(df = one_peak) + comb_plot(data = one_peak, x1 = 25, x2 = 230,
+                                                    pos_b1 = c(0.08, 0.08 + wp, 0.01, 0.01 + hp),
+                                                    pos_a1 = c(85, 142.5),
+                                                    pos_b2 = c(0.58, 0.58 + wp, 0.6, 0.6 + hp),
+                                                    pos_a2 = c(283, 275))
+
+p_plot <- (exp_plot_p + exp_plot_s) + plot_layout(guides = "collect")
+
 season_plot_df <- rbind(perennial, one_peak)
 
 season_plot_df$season <- factor(season_plot_df$season, levels = c("perennial", "one peak"))
 
 sum_age_df <- season_plot_df |> 
   group_by(season, timestep) |> summarise(m = mean(mean),
+                                          m_sd = mean(sd_age),
+                                          m_cv = mean(cv_age),
                                           m_p = mean(prop_parous),
                                           m_p_10_plus = mean(prop_10_plus),
                                           m_mu = mean(mu_rate))
 
-sum_age_df[sum_age_df$season == "perennial", "m"] |> max()
+sum_age_df[sum_age_df$season == "perennial", "m"] |> min()
 
 age_plot <- ggplot() +
   geom_line(data = season_plot_df,
             aes(x = timestep, y = mean, col = season,
-                group = interaction(sim, season)), linewidth = 0.1, alpha = 0.25) +
+                group = interaction(sim, season)), linewidth = 0.15, alpha = 0.25) +
   geom_line(data = sum_age_df, 
                    aes(x = timestep, y = m,
                        col = season), linewidth = 0.9) +
@@ -215,8 +212,106 @@ age_plot <- ggplot() +
         legend.position.inside = c(0.1, 0.8)) +
   ylab("Mean mosquito age (days)") +
   xlab("Day of the year") +
-  scale_y_continuous(limits = c(5, 10)) +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9")) + labs(title = "B")
+  scale_y_continuous(limits = c(4, 11)) +
+  scale_colour_manual(values = c("#E69F00", "#CC79A7")) + labs(title = "B")
+
+parity_plot <- ggplot() +
+  geom_line(data = season_plot_df,
+            aes(x = timestep, y = prop_parous, 
+                col = season,
+                group = interaction(sim, season)), linewidth = 0.15, alpha = 0.25) +
+  geom_line(data = sum_age_df, 
+            aes(x = timestep, y = m_p,
+                col = season), linewidth = 0.9) +
+  theme(legend.title = element_blank(),
+        legend.position = "inside",
+        legend.position.inside = c(0.1, 0.8)) +
+  ylab("Percent parous") +
+  xlab("Day of the year") +
+  scale_y_continuous(limits = c(0.25, 0.85), labels = scales::percent) +
+  scale_colour_manual(values = c("#E69F00", "#CC79A7"))
+
+age_10_plot <- ggplot() +
+  geom_line(data = season_plot_df,
+            aes(x = timestep, y = prop_10_plus, 
+                col = season,
+                group = interaction(sim, season)), linewidth = 0.15, alpha = 0.25) +
+  geom_line(data = sum_age_df, 
+            aes(x = timestep, y = m_p_10_plus,
+                col = season), linewidth = 0.9) +
+  theme(legend.title = element_blank(),
+        legend.position = "inside",
+        legend.position.inside = c(0.1, 0.8)) +
+  ylab("Percent of the population\nat least 10 days old") +
+  xlab("Day of the year") +
+  scale_y_continuous(limits = c(0.05, 0.55), labels = scales::percent) +
+  scale_colour_manual(values = c("#E69F00", "#CC79A7"))
+
+time_metric_plots <- (age_plot + parity_plot + age_10_plot) + 
+  plot_layout(guides = "collect",
+              axes = "collect")
+
+calc_sum_t_df <- function(.df){
+  .df <- .df |> 
+  group_by(season, sim) |> summarise(m_age = mean(mean),
+                                     sd_m_age = sd(mean),
+                                     m_m = mean(state_tot),
+                                     sd_m = sd(state_tot),
+                                     m_prop_p = mean(prop_parous),
+                                     sd_prop_p = sd(prop_parous),
+                                     m_prop_10_plus = mean(prop_10_plus),
+                                     sd_prop_10_plus = sd(prop_10_plus)) |> 
+  mutate(cv_age = sd_m_age / m_age,
+         cv_m = sd_m / m_m,
+         cv_prop_p = sd_prop_p / m_prop_p,
+         cv_prop_10_plus = sd_prop_10_plus / m_prop_10_plus)
+  
+  .df$season <- factor(.df$season, levels = c("one peak", "perennial"))
+  
+  return(.df)
+}
+
+sum_t_df <- calc_sum_t_df(season_plot_df)
+
+# two week period during transmission season
+sum_t_df_p_ts <- calc_sum_t_df(season_plot_df |> filter(round(timestep, digits = 0) >= round(365/4 - 7, digits = 0) &
+                                                        round(timestep, digits = 0) <= round(365/4 + 7, digits = 0))
+                               )
+
+# transmission season
+sum_t_df_ts <- calc_sum_t_df(season_plot_df |> filter(round(timestep, digits = 0) >= round(0, digits = 0) &
+                                                          round(timestep, digits = 0) <= round(180, digits = 0))
+                             )
+
+cv_plot_fun <- function(.df, l_lim, u_lim, title){
+  ggplot(data = .df, aes(y = season)) +
+  geom_boxplot(aes(x = cv_m, col = "Mosquito count")) +
+  geom_boxplot(aes(x = cv_age, col = "Mean age")) +
+  geom_boxplot(aes(x = cv_prop_p, col = "Parity")) +
+  geom_boxplot(aes(x = cv_prop_10_plus, col = "Proportion of mosquitoes\nat least 10 days old")) +
+  scale_x_continuous(limits = c(l_lim, u_lim), breaks = seq(l_lim, u_lim, 0.1), labels = scales::percent) +
+  ylab("Seasonality in the\nmean emergence rate") +
+  xlab("Coefficient of variation in the daily values") +
+  scale_colour_manual(values = c("Proportion of mosquitoes\nat least 10 days old" = "#009E73", 
+                                 "Parity" = "#D55E00",
+                                 "Mosquito count" = "#0072B2",
+                                 "Mean age" = "#000000"), 
+                      name = "Entomological metric") +
+  labs(title = title)
+}
+  
+cv_plot <- cv_plot_fun(sum_t_df, l_lim = 0, u_lim = 0.6, title = "C Year") +
+  cv_plot_fun(sum_t_df_ts, l_lim = 0, u_lim = 0.6, title = "Transmission season (half year)") +
+  cv_plot_fun(sum_t_df_p_ts, l_lim = 0, u_lim = 0.6, title = "Transmission season (peak two-weeks)") + 
+  plot_layout(axes = "collect", guides = "collect")
+
+one_peak_plots <- (p_plot / time_metric_plots / cv_plot) + plot_layout(heights = c(1, 1, 0.875))
+
+ggsave("op_plots.pdf", 
+       one_peak_plots,
+       device = "pdf",
+       width = 50, height = 37.5,
+       units = "cm")
 
 freq_dens_plot <- ggplot(data = season_plot_df |> filter(sim %in% seq(1, 5)),
        aes(x = mean, 
@@ -227,58 +322,60 @@ freq_dens_plot <- ggplot(data = season_plot_df |> filter(sim %in% seq(1, 5)),
   theme(legend.position = "inside", legend.position.inside = c(0.8, 0.8)) +
   xlab("Mean daily ages over a single year (days)") +
   ylab("Density") +
-  scale_fill_manual(values = c("#E69F00", "#56B4E9"),
+  scale_fill_manual(values = c("#E69F00", "#CC79A7"),
                     name = "seasonality") +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9"),
+  scale_colour_manual(values = c("#E69F00", "#CC79A7"),
                     name = "seasonality") +
   scale_y_continuous(limits = c(0, 1)) +
   scale_x_continuous(limits = c(2, 14), breaks = seq(2, 14, 2)) + labs(title = "C")
 
-parity_plot <- ggplot() +
-  geom_line(data = season_plot_df,
-            aes(x = timestep, y = prop_parous, 
-                col = season,
-                group = interaction(sim, season)), linewidth = 0.1, alpha = 0.25) +
-  geom_line(data = sum_age_df, 
-            aes(x = timestep, y = m_p,
-                col = season), linewidth = 0.9) +
-  theme(legend.title = element_blank(),
-        legend.position = "inside",
-        legend.position.inside = c(0.1, 0.8)) +
-  ylab("Percent parous") +
-  xlab("Day of the year") +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9")) + 
-  labs(title = "D")
 
-age_10_plot <- ggplot() +
-  geom_line(data = season_plot_df,
-            aes(x = timestep, y = prop_10_plus, 
-                col = season,
-                group = interaction(sim, season)), linewidth = 0.1, alpha = 0.25) +
-  geom_line(data = sum_age_df, 
-            aes(x = timestep, y = m_p_10_plus,
-                col = season), linewidth = 0.9) +
-  theme(legend.title = element_blank(),
-        legend.position = "inside",
-        legend.position.inside = c(0.1, 0.8)) +
-  ylab("Percent of the population\nat least 10 days old") +
-  xlab("Day of the year") +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9")) + 
-  labs(title = "E")
-  
+# age_dist_plot_p + 
+#   plot_layout(nrow = 1, 
+#               heights = c(2.5, 3))
 
-one_peak_plots <- exp_plot_s + ((age_plot + freq_dens_plot) / (parity_plot + age_10_plot) + 
-                plot_layout(nrow = 2)) +
-  plot_layout(nrow = 2, heights = c(2, 3))
+# one_peak_plots <-  + ((age_plot + freq_dens_plot) / (parity_plot + age_10_plot) + 
+#                 plot_layout(nrow = 2)) +
+#   plot_layout(nrow = 2, heights = c(2, 3))
 
-ggsave("op_plots.pdf", 
-       one_peak_plots,
-       device = "pdf",
-       #width = 20, height = 25, 
-       width = 35, height = 35,
-       units = "cm")
+# values
+round(min(perennial$mean), digits = 1)
+round(max(perennial$mean), digits = 1)
+round(min(one_peak$mean), digits = 1)
+round(max(one_peak$mean), digits = 1)
+
+round(min(perennial$mu_rate), digits = 2)
+round(max(perennial$mu_rate), digits = 2)
+round(min(one_peak$mu_rate), digits = 2)
+round(max(one_peak$mu_rate), digits = 2)
+
+round(min(perennial$prop_10_plus), digits = 2) * 100
+round(max(perennial$prop_10_plus), digits = 2) * 100
+round(min(one_peak$prop_10_plus), digits = 2) * 100
+round(max(one_peak$prop_10_plus), digits = 2) * 100
+
+round(min(perennial$prop_parous), digits = 2) * 100
+round(max(perennial$prop_parous), digits = 2) * 100
+round(min(one_peak$prop_parous), digits = 2) * 100
+round(max(one_peak$prop_parous), digits = 2) * 100
+
+round(median(subset(sum_t_df, season == "perennial")$cv_m), digits = 3)*100
+round(median(subset(sum_t_df, season == "perennial")$cv_age), digits = 3)*100
+
+round(median(subset(sum_t_df, season == "one peak")$cv_m), digits = 3)*100
+round(median(subset(sum_t_df, season == "one peak")$cv_age), digits = 3)*100
+
+round(median(subset(sum_t_df_ts, season == "perennial")$cv_m), digits = 3)*100
+round(median(subset(sum_t_df_ts, season == "perennial")$cv_age), digits = 3)*100
+
+round(median(subset(sum_t_df_ts, season == "one peak")$cv_m), digits = 3)*100
+round(median(subset(sum_t_df_ts, season == "one peak")$cv_age), digits = 3)*100
+
+round(median(subset(sum_t_df_p_ts, season == "perennial")$cv_m), digits = 3)*100
+round(median(subset(sum_t_df_p_ts, season == "perennial")$cv_age), digits = 3)*100
+
+round(median(subset(sum_t_df_p_ts, season == "one peak")$cv_m), digits = 3)*100
+round(median(subset(sum_t_df_p_ts, season == "one peak")$cv_age), digits = 3)*100
 
 # mortality
 mu_plot <- ggplot() +
@@ -294,7 +391,7 @@ mu_plot <- ggplot() +
   ylab("Per-capita mosquito mortality rate\nestimated from the daily age distributions (per day)") +
   xlab("Day of the year") +
   scale_y_continuous(limits = c(0, 0.2)) +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9"))
+  scale_colour_manual(values = c("#E69F00", "#CC79A7"))
 
 ggsave("mu_plot.pdf", 
        mu_plot,
@@ -302,6 +399,10 @@ ggsave("mu_plot.pdf",
        #width = 20, height = 25, 
        width = 20, height = 15,
        units = "cm")
+
+####################
+##### Figure 2 #####
+####################
 
 ###############################
 ##### supplementary plots #####
@@ -544,16 +645,18 @@ EHT_fit_plot <- function(out){
 }
 
 T_plot <-  EHT_fit_plot(out = EHT_autocorr$out_T) +
-  ggtitle("Tiefora")
+  ggtitle("Tengrela")
 
 V_plot <- EHT_fit_plot(out = EHT_autocorr$out_V) +
-  ggtitle("Vallée du Kou")
+  ggtitle("Vallée du Kou 5")
+
+median(c(EHT_autocorr$out_T$df$total, EHT_autocorr$out_V$df$total)) * 6 * 3
 
 dens_plot <- function(par, 
                       f_T = EHT_autocorr$out_T, 
                       f_V = EHT_autocorr$out_V){
-  df <- rbind(rstan::extract(f_T$fit, par) %>% as.data.frame() %>% mutate(study = "Tiefora"),
-              rstan::extract(f_V$fit, par) %>% as.data.frame() %>% mutate(study = "Vallée du Kou"))
+  df <- rbind(rstan::extract(f_T$fit, par) %>% as.data.frame() %>% mutate(study = "Tengrela"),
+              rstan::extract(f_V$fit, par) %>% as.data.frame() %>% mutate(study = "Vallée du Kou 5"))
   
   colnames(df)[1] <- "par"
   
@@ -619,13 +722,13 @@ EHT_sims_T <- process_EHT_sims(EHT_sims_T, n_warmup = n_warmup)
 EHT_sims_V <- process_EHT_sims(EHT_sims_V, n_warmup = n_warmup)
 
 EHT_sim_plot <- ggplot() +
-  geom_line(data = rbind(EHT_sims_T$sims |> mutate(EHT = "Tiefora"),
-                         EHT_sims_V$sims |> mutate(EHT = "Vallée du Kou")), 
+  geom_line(data = rbind(EHT_sims_T$sims |> mutate(EHT = "Tengrela"),
+                         EHT_sims_V$sims |> mutate(EHT = "Vallée du Kou 5")), 
             aes(x = timestep, y = state_tot, group = interaction(factor(sim), EHT),
                 col = EHT),
             linewidth = 0.075, alpha = 0.1) +
-  geom_line(data = rbind(EHT_sims_T$mean |> mutate(EHT = "Tiefora"),
-                         EHT_sims_V$mean |> mutate(EHT = "Vallée du Kou")),
+  geom_line(data = rbind(EHT_sims_T$mean |> mutate(EHT = "Tengrela"),
+                         EHT_sims_V$mean |> mutate(EHT = "Vallée du Kou 5")),
             aes(x = timestep, y = m, col = EHT), linewidth = 1) +
   ylim(0, 500) +
   xlab("Day of EHT") + ylab("Simulated mosquito abundance") +
@@ -636,12 +739,12 @@ EHT_sim_plot <- ggplot() +
 ages_T <- EHT_sims_T$sims |> filter(sim %in% seq(1)) |> group_by(timestep) |> 
   dplyr::select(X0:X150) |> tidyr::pivot_longer(X0:X150) |> 
   dplyr::mutate(name = as.numeric(gsub("X", "", name))) |> tidyr::uncount(value) |> 
-  mutate(EHT = "Tiefora")
+  mutate(EHT = "Tengrela")
 
 ages_V <- EHT_sims_V$sims |> filter(sim %in% seq(1)) |> group_by(timestep) |> 
   dplyr::select(X0:X150) |> tidyr::pivot_longer(X0:X150) |> 
   dplyr::mutate(name = as.numeric(gsub("X", "", name))) |> tidyr::uncount(value) |> 
-  mutate(EHT = "Vallée du Kou")
+  mutate(EHT = "Vallée du Kou 5")
 
 EHT_ages <- rbind(ages_T, ages_V)
 
@@ -660,7 +763,7 @@ EHT_ages_plot <- ggplot() +
   scale_y_discrete(breaks = seq(39, 1, -1)) +
   theme(legend.position = "none") +
   xlab("Age (days)") + ylab("Day of EHT") +
-  scale_fill_viridis_c() +
+  scale_fill_distiller() +
   facet_wrap(~EHT) +
   ggtitle("Simulated mosquito age distributions")
 
@@ -674,3 +777,78 @@ ggsave("EHT_plot.pdf",
        height = 21.5
 )
 
+#####################
+##### ITN model #####
+#####################
+
+ssm_plot_df <- readRDS("ssm_plot_df.rds")
+ssm_params <- readRDS("ssm_params.rds")
+
+mos_plot <- ggplot() +
+  geom_line(data = ssm_plot_df,
+            aes(x = t_plot, y = value, group = interaction(seasonality, itn_cov, ITN_time, name), col = factor(itn_cov)),
+            linewidth = 0.05, alpha = 0.1) +
+  geom_line(data = ssm_plot_df |> group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(value)),
+            aes(x = t_plot, y = m, group = interaction(seasonality, itn_cov, ITN_time), col = factor(itn_cov))) +
+  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
+             aes(xintercept = ITN_IRS_on),
+             col = "black", linetype = 2) +
+  facet_grid(vars(seasonality), vars(factor(ITN_time, levels = c("ITN time: population increasing", "ITN time: population decreasing")))) +
+  theme_bw() +
+  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage") +
+  xlab("Day") +
+  ylab("Total mosquito abundance") 
+
+age_plot <- 
+  ggplot() + 
+  geom_line(data = ssm_plot_df |> na.omit(),
+            aes(x = t_plot, y = mean_age, 
+                group = interaction(seasonality, itn_cov, ITN_time, name), 
+                col = factor(itn_cov)),
+            linewidth = 0.05, alpha = 0.1) +
+  geom_line(data = ssm_plot_df |> na.omit() |> 
+              group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(mean_age)),
+            aes(x = t_plot, y = m, group = interaction(seasonality, itn_cov, ITN_time), col = factor(itn_cov))) +
+  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
+             aes(xintercept = ITN_IRS_on),
+             col = "black", linetype = 2) +
+  facet_grid(vars(seasonality),
+             vars(factor(ITN_time, levels = c("ITN time: population increasing", "ITN time: population decreasing")))) +
+  theme_bw() +
+  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage") +
+  xlab("Day") +
+  ylab("Mean mosquito age (days)") +
+  coord_cartesian(ylim = c(0, 30))
+
+mean_age_diff <- ssm_plot_df |> filter(itn_cov == 0) |> 
+  left_join(ssm_plot_df |> filter(itn_cov == 1), 
+            by = c("name", "t", "ITN_time", "t_plot", "seasonality")) |> 
+  mutate(diff_age = mean_age.y - mean_age.x)
+
+diff_plot <- ggplot() +
+  geom_point(data = mean_age_diff |> na.omit(), 
+             aes(x = t_plot, y = diff_age, col = ITN_time, group = interaction(name)),
+             size = 0.25, alpha = 0.1) +
+  geom_line(data = mean_age_diff |> na.omit() |> group_by(seasonality, t_plot, ITN_time) |> summarise(m = mean(diff_age)),
+            aes(x = t_plot, y = m, col = ITN_time),
+            linewidth = 1) +
+  
+  facet_wrap(~seasonality) +
+  coord_cartesian(ylim = c(-30, 5))+
+  scale_colour_manual(values = c("skyblue", "#009E73"), name = "") +
+  xlab("Day") +
+  ylab("Difference in mean age\nof simulations with and without ITNs (days)") +
+  theme_bw() +
+  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
+             aes(xintercept = ITN_IRS_on, col = ITN_time),
+             linetype = 2)
+
+int_plots <- mos_plot + age_plot + diff_plot + 
+  plot_layout(nrow = 3) + plot_annotation(tag_levels = 'A')
+
+ggsave("int_plots.pdf", 
+       int_plots,
+       device = "pdf",
+       #width = 20, height = 25, 
+       width = 30, height = 40,
+       units = "cm")

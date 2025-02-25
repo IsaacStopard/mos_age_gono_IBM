@@ -134,7 +134,7 @@ update(E) <- E + n_births - dead_E - develop_E
 update(L) <- L + develop_E - dead_L - develop_L
 update(P) <- P + develop_L - develop_P - dead_P
 
-develop_P_to_A <- rbinom(develop_P, 0.5)
+develop_P_to_A <- rbinom(develop_P, 0.5) # proportion female 
 
 #######################################################
 ##### state space adult mosquito population model #####

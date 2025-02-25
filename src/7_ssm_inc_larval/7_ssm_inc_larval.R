@@ -5,6 +5,7 @@ orderly2::orderly_shared_resource("default_values.R",
 
 source("default_values.R")
 
+# compile model
 age_model_dust <- odin.dust::odin_dust("mos_age_odin.R")
 
 theme_set(theme_bw() + 
@@ -49,7 +50,7 @@ run_model <- function(num_int,
                                               irs_cov = irs_cov,
                                               num_int = num_int,
                                               ITN_IRS_on = ITN_IRS_on,
-                                              irs_loss = log(2)/(0.5 * 365),
+                                              irs_loss = log(2)/(0.5 * 365), # need to check
                                               itn_loss = log(2)/(2.64 * 365),
                                               rainfall_floor = 0.1),
                                   time = 1,
@@ -67,6 +68,7 @@ run_model <- function(num_int,
   return(x)
 }
 
+# m refers to the total counts of mosquitoes
 extract_m <- function(x, i){
   if(i == 5){
     times <- x[1, 1, ] - 1
@@ -95,6 +97,7 @@ extract_age <- function(x, t){
     mutate(t = times[t]))
 }
 
+# to discard the initial years of the simulations
 s_times <- function(.df){
   .df |> filter(t > 4 * 365) |> 
     mutate(t_plot = t - 4 * 365)
@@ -184,70 +187,5 @@ if(any(plot_df[is.na(plot_df$mean_age), "value"] |> unique() != 0)){
   warning("missing mean age values")
 }
 
-mos_plot <- ggplot() +
-  geom_line(data = plot_df,
-            aes(x = t_plot, y = value, group = interaction(seasonality, itn_cov, ITN_time, name), col = factor(itn_cov)),
-            linewidth = 0.05, alpha = 0.1) +
-  geom_line(data = plot_df |> group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(value)),
-            aes(x = t_plot, y = m, group = interaction(seasonality, itn_cov, ITN_time), col = factor(itn_cov))) +
-  geom_vline(data = params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
-             aes(xintercept = ITN_IRS_on),
-             col = "black", linetype = 2) +
-  facet_grid(vars(seasonality), vars(factor(ITN_time, levels = c("ITN time: population increasing", "ITN time: population decreasing")))) +
-  theme_bw() +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage") +
-  xlab("Day") +
-  ylab("Total mosquito abundance") 
-
-age_plot <- 
-  ggplot() + 
-  geom_line(data = plot_df |> na.omit(),
-       aes(x = t_plot, y = mean_age, 
-           group = interaction(seasonality, itn_cov, ITN_time, name), 
-           col = factor(itn_cov)),
-       linewidth = 0.05, alpha = 0.1) +
-  geom_line(data = plot_df |> na.omit() |> 
-              group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(mean_age)),
-            aes(x = t_plot, y = m, group = interaction(seasonality, itn_cov, ITN_time), col = factor(itn_cov))) +
-  geom_vline(data = params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
-             aes(xintercept = ITN_IRS_on),
-             col = "black", linetype = 2) +
-  facet_grid(vars(seasonality),
-             vars(factor(ITN_time, levels = c("ITN time: population increasing", "ITN time: population decreasing")))) +
-  theme_bw() +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage") +
-  xlab("Day") +
-  ylab("Mean mosquito age (days)") +
-  coord_cartesian(ylim = c(0, 30))
-
-mean_age_diff <- plot_df |> filter(itn_cov == 0) |> 
-  left_join(plot_df |> filter(itn_cov == 1), 
-            by = c("name", "t", "ITN_time", "t_plot", "seasonality")) |> 
-  mutate(diff_age = mean_age.y - mean_age.x)
-
-diff_plot <- ggplot() +
-  geom_point(data = mean_age_diff |> na.omit(), 
-       aes(x = t_plot, y = diff_age, col = ITN_time, group = interaction(name)),
-       size = 0.25, alpha = 0.1) +
-  geom_line(data = mean_age_diff |> na.omit() |> group_by(seasonality, t_plot, ITN_time) |> summarise(m = mean(diff_age)),
-                       aes(x = t_plot, y = m, col = ITN_time),
-            linewidth = 1) +
-  facet_wrap(~seasonality) +
-  coord_cartesian(ylim = c(-30, 5))+
-  scale_colour_manual(values = c("skyblue", "#009E73"), name = "ITN coverage") +
-  xlab("Day") +
-  ylab("Difference in mean age\nof simulations with and without ITNs (days)") +
-  theme_bw() +
-  geom_vline(data = params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
-                         aes(xintercept = ITN_IRS_on, col = ITN_time),
-                          linetype = 2)
-
-int_plots <- mos_plot + age_plot + diff_plot + 
-  plot_layout(nrow = 3) + plot_annotation(tag_levels = 'A')
-
-ggsave("int_plots.pdf", 
-       int_plots,
-       device = "pdf",
-       #width = 20, height = 25, 
-       width = 30, height = 40,
-       units = "cm")
+saveRDS(plot_df, file = "ssm_plot_df.rds")
+saveRDS(params, file = "ssm_params.rds")

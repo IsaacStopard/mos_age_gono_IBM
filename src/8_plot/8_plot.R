@@ -289,7 +289,7 @@ cv_plot_fun <- function(.df, l_lim, u_lim, title){
   geom_boxplot(aes(x = cv_age, col = "Mean age")) +
   geom_boxplot(aes(x = cv_prop_p, col = "Parity")) +
   geom_boxplot(aes(x = cv_prop_10_plus, col = "Proportion of mosquitoes\nat least 10 days old")) +
-  scale_x_continuous(limits = c(l_lim, u_lim), breaks = seq(l_lim, u_lim, 0.1), labels = scales::percent) +
+  scale_x_continuous(limits = c(l_lim, u_lim), breaks = seq(l_lim, u_lim, 0.05), labels = scales::percent) +
   ylab("Seasonality in the\nmean emergence rate") +
   xlab("Coefficient of variation in the daily values") +
   scale_colour_manual(values = c("Proportion of mosquitoes\nat least 10 days old" = "#009E73", 
@@ -300,9 +300,8 @@ cv_plot_fun <- function(.df, l_lim, u_lim, title){
   labs(title = title)
 }
   
-cv_plot <- cv_plot_fun(sum_t_df, l_lim = 0, u_lim = 0.6, title = "C Year") +
-  cv_plot_fun(sum_t_df_ts, l_lim = 0, u_lim = 0.6, title = "Transmission season (half year)") +
-  cv_plot_fun(sum_t_df_p_ts, l_lim = 0, u_lim = 0.6, title = "Transmission season (peak two-weeks)") + 
+cv_plot <- cv_plot_fun(sum_t_df_ts, l_lim = 0, u_lim = 0.21, title = "C Primary transmission season (half year)") +
+  cv_plot_fun(sum_t_df_p_ts, l_lim = 0, u_lim = 0.21, title = "Primary transmission season (peak two-weeks)") + 
   plot_layout(axes = "collect", guides = "collect")
 
 one_peak_plots <- (p_plot / time_metric_plots / cv_plot) + plot_layout(heights = c(1, 1, 0.875))
@@ -823,7 +822,7 @@ age_plot <-
 mean_age_diff <- ssm_plot_df |> filter(itn_cov == 0) |> 
   left_join(ssm_plot_df |> filter(itn_cov == 1), 
             by = c("name", "t", "ITN_time", "t_plot", "seasonality")) |> 
-  mutate(diff_age = mean_age.y - mean_age.x)
+  mutate(diff_age = mean_age.x - mean_age.y)
 
 diff_plot <- ggplot() +
   geom_point(data = mean_age_diff |> na.omit(), 
@@ -834,10 +833,10 @@ diff_plot <- ggplot() +
             linewidth = 1) +
   
   facet_wrap(~seasonality) +
-  coord_cartesian(ylim = c(-30, 5))+
+  coord_cartesian(ylim = c(-5, 30))+
   scale_colour_manual(values = c("skyblue", "#009E73"), name = "") +
   xlab("Day") +
-  ylab("Difference in mean age\nof simulations with and without ITNs (days)") +
+  ylab("Increase in mean mosquito age without ITNs (days)") +
   theme_bw() +
   geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
              aes(xintercept = ITN_IRS_on, col = ITN_time),

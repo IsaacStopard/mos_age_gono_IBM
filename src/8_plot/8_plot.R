@@ -783,6 +783,60 @@ ggsave("EHT_plot.pdf",
 ssm_plot_df <- readRDS("ssm_plot_df.rds")
 ssm_params <- readRDS("ssm_params.rds")
 
+get_vals_ssm <- function(time_in = 210, ITN_time_in, seasonality_in){
+  return(left_join(
+    subset(ssm_plot_df, ITN_time == ITN_time_in & 
+             seasonality == seasonality_in &
+                   t_plot == time_in & 
+             itn_cov == 1) |> select(-itn_cov),
+    
+          subset(ssm_plot_df, ITN_time == ITN_time_in & seasonality == seasonality_in &
+                   t_plot == time_in & itn_cov == 0) |> select(-itn_cov) |> 
+            rename(value_0 = value, mean_age_0 = mean_age)
+          ) |> mutate(diff_m = value_0 - value,
+                      diff_mp = diff_m / value_0 * 100,
+                      diff_age = mean_age_0 - mean_age,
+                      diff_agep = diff_age / mean_age_0 * 100) |>
+    group_by(t_plot, seasonality, ITN_time) |> 
+  summarise(m_diff_m = round(mean(diff_m), digits = 1),
+            m_diff_mp = round(mean(diff_mp), digits = 1),
+            m_diff_age = round(mean(diff_age), digits = 1),
+            m_diff_agep = round(mean(diff_agep), digits = 1),
+            l_diff_m = round(min(diff_m), digits = 1),
+            l_diff_mp = round(min(diff_mp), digits = 1),
+            l_diff_age = round(min(diff_age), digits = 1),
+            l_diff_agep = round(min(diff_agep), digits = 1),
+            u_diff_m = round(max(diff_m), digits = 1),
+            u_diff_mp = round(max(diff_mp), digits = 1),
+            u_diff_age = round(max(diff_age), digits = 1),
+            u_diff_agep = round(max(diff_agep), digits = 1)))
+}
+
+get_vals_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "perennial") |> view()
+get_vals_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "seasonal") |> view()
+
+get_vals_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "perennial") |> view()
+get_vals_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "seasonal") |> view()
+
+get_age_ssm <- function(time_in = 210, ITN_time_in, seasonality_in, itn_cov_in){
+  return(subset(ssm_plot_df, ITN_time == ITN_time_in & 
+         seasonality == seasonality_in &
+         t_plot == time_in & 
+         itn_cov == itn_cov_in) |> group_by(ITN_time, t_plot, seasonality, itn_cov) |> 
+  summarise(m_mean_age = round(mean(mean_age), digits = 1),
+            l_mean_age = round(min(mean_age), digits = 1),
+            u_mean_age = round(max(mean_age), digits = 1)))
+}
+
+get_age_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "perennial", itn_cov_in = 0)
+get_age_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "perennial", itn_cov_in = 1)
+
+get_age_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "seasonal", itn_cov_in = 0)
+get_age_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "seasonal", itn_cov_in = 1)
+
+get_age_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "seasonal", itn_cov_in = 0)
+get_age_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "seasonal", itn_cov_in = 1)
+
 mos_plot <- ggplot() +
   geom_line(data = ssm_plot_df,
             aes(x = t_plot, y = value, group = interaction(seasonality, itn_cov, ITN_time, name), col = factor(itn_cov)),
@@ -851,3 +905,5 @@ ggsave("int_plots.pdf",
        #width = 20, height = 25, 
        width = 30, height = 40,
        units = "cm")
+
+quit

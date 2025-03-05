@@ -285,10 +285,10 @@ sum_t_df_ts <- calc_sum_t_df(season_plot_df |> filter(round(timestep, digits = 0
 
 cv_plot_fun <- function(.df, l_lim, u_lim, title){
   ggplot(data = .df, aes(y = season)) +
-  geom_boxplot(aes(x = cv_m, col = "Mosquito count")) +
-  geom_boxplot(aes(x = cv_age, col = "Mean age")) +
-  geom_boxplot(aes(x = cv_prop_p, col = "Parity")) +
-  geom_boxplot(aes(x = cv_prop_10_plus, col = "Proportion of mosquitoes\nat least 10 days old")) +
+  geom_boxplot(aes(x = cv_m, col = "Mosquito count", fill = "Mosquito count"), alpha = 0.25) +
+  geom_boxplot(aes(x = cv_age, col = "Mean age", fill = "Mean age"), alpha = 0.25) +
+  geom_boxplot(aes(x = cv_prop_p, col = "Parity", fill = "Parity"), alpha = 0.25) +
+  geom_boxplot(aes(x = cv_prop_10_plus, col = "Proportion of mosquitoes\nat least 10 days old", fill = "Proportion of mosquitoes\nat least 10 days old"), alpha = 0.25) +
   scale_x_continuous(limits = c(l_lim, u_lim), breaks = seq(l_lim, u_lim, 0.05), labels = scales::percent) +
   ylab("Seasonality in the\nmean emergence rate") +
   xlab("Coefficient of variation in the daily values") +
@@ -297,6 +297,11 @@ cv_plot_fun <- function(.df, l_lim, u_lim, title){
                                  "Mosquito count" = "#0072B2",
                                  "Mean age" = "#000000"), 
                       name = "Entomological metric") +
+    scale_fill_manual(values = c("Proportion of mosquitoes\nat least 10 days old" = "#009E73", 
+                                   "Parity" = "#D55E00",
+                                   "Mosquito count" = "#0072B2",
+                                   "Mean age" = "#000000"), 
+                        name = "Entomological metric") +
   labs(title = title)
 }
   
@@ -812,11 +817,11 @@ get_vals_ssm <- function(time_in = 210, ITN_time_in, seasonality_in){
             u_diff_agep = round(max(diff_agep), digits = 1)))
 }
 
-get_vals_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "perennial") |> view()
-get_vals_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "seasonal") |> view()
+get_vals_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "perennial")
+get_vals_ssm(time_in = 210, ITN_time_in = "ITN time: population increasing", seasonality_in = "seasonal")
 
-get_vals_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "perennial") |> view()
-get_vals_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "seasonal") |> view()
+get_vals_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "perennial")
+get_vals_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "seasonal")
 
 get_age_ssm <- function(time_in = 210, ITN_time_in, seasonality_in, itn_cov_in){
   return(subset(ssm_plot_df, ITN_time == ITN_time_in & 
@@ -905,5 +910,3 @@ ggsave("int_plots.pdf",
        #width = 20, height = 25, 
        width = 30, height = 40,
        units = "cm")
-
-quit

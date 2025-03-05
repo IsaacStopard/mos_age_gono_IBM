@@ -1,10 +1,10 @@
-# The effect of adult emergence on the age distribution of mosquito populations: a modelling study
+# The effect of adult emergence on the surveillance and age distribution of medically important mosquito populations: a modelling study
 
-This GitHub repository provides all code necessary for the paper "The effect of adult emergence on the age distribution of mosquito populations: a modelling study"
+This GitHub repository provides all code necessary for the paper.
 
 ### Version 1 Release
 
-#### Last updated: 04/10/2024
+#### Last updated: 05/03/2025
 
 ### Notes
 

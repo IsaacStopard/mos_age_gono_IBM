@@ -169,9 +169,9 @@ age_dist_plot_p <- age_dist_time_plot(df = perennial,
                                            sim_rep_max = c(1, 5, 20), 
                                            time = seq(25, 360, 25), time_diff = 25)
 
-ggsave("age_dist_plot_p.pdf",
+ggsave("age_dist_plot_p.tiff",
        age_dist_plot_p,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25,
        width = 20, height = 12.5,
        units = "cm")
@@ -311,9 +311,9 @@ cv_plot <- cv_plot_fun(sum_t_df_ts, l_lim = 0, u_lim = 0.21, title = "C Primary 
 
 one_peak_plots <- (p_plot / time_metric_plots / cv_plot) + plot_layout(heights = c(1, 1, 0.875))
 
-ggsave("op_plots.pdf", 
+ggsave("op_plots.tiff", 
        one_peak_plots,
-       device = "pdf",
+       device = "tiff",
        width = 50, height = 37.5,
        units = "cm")
 
@@ -397,9 +397,9 @@ mu_plot <- ggplot() +
   scale_y_continuous(limits = c(0, 0.2)) +
   scale_colour_manual(values = c("#E69F00", "#CC79A7"))
 
-ggsave("mu_plot.pdf", 
+ggsave("mu_plot.tiff", 
        mu_plot,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25, 
        width = 20, height = 15,
        units = "cm")
@@ -437,7 +437,6 @@ supp_a_plot <- ggplot(data = a_sens_sims,
   geom_line(data = m_a_sens_sims, 
             aes(y = m_0, col = "aged 0"), linewidth = 0.75) +
   facet_wrap(~a_p_lab) +
-  theme_bw() +
   ylab("Mosquito abundance") + xlab("Day of year") +
   scale_colour_manual(values = c("aged 0" = "skyblue", "total" = "grey50"),
                       name = "") + 
@@ -473,7 +472,6 @@ supp_f_plot <- ggplot(data = f_sens_sims,
   geom_line(data = m_f_sens_sims, aes(y = m_abundance, col = "total"), linewidth = 0.75) +
   geom_line(data = m_f_sens_sims, aes(y = m_0, col = "aged 0"), linewidth = 0.75) +
   facet_wrap(~w) +
-  theme_bw() +
   ylab("Mosquito abundance") + xlab("Day of year") +
   scale_colour_manual(values = c("aged 0" = "skyblue", "total" = "grey50"),
                       name = "") + 
@@ -484,20 +482,19 @@ freq_sens_plot <- ggplot(data = sum_freq_f,
   geom_boxplot() +
   xlab(expression(paste("Frequency of seasonality in ", lambda,  " (365", kappa, ") (rad per year)"))) +
   ylab("Coefficient of variation in the\ndaily mean ages over a single year") +
-  theme_bw() +
   scale_x_continuous(breaks = c(seq(0, 50, 10))) +
   theme(text = element_text(size = 14)) +
   scale_y_continuous(limits = c(0, 0.25))
 
-ggsave("supp_a_plot.pdf", 
+ggsave("supp_a_plot.tiff", 
        supp_a_plot,
-       device = "pdf",
+       device = "tiff",
        width = 20, height = 15, 
        units = "cm")
 
-ggsave("supp_f_plot.pdf", 
+ggsave("supp_f_plot.tiff", 
        supp_f_plot,
-       device = "pdf",
+       device = "tiff",
        width = 20, height = 15, 
        units = "cm")
 
@@ -505,9 +502,9 @@ sensitivity_f_plot <- freq_sens_plot + a_sens_plot +
   plot_layout(nrow = 1) + plot_annotation(tag_levels = 'A') +
   plot_layout(axis = "collect")
 
-ggsave("sensitivity_f_plot.pdf", 
+ggsave("sensitivity_f_plot.tiff", 
        sensitivity_f_plot,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25, 
        width = 30, height = 15,
        units = "cm")
@@ -538,7 +535,7 @@ abundance_plot <- ggplot(data = auto_sims_plot |> subset(sim == 1 & h %in% c(-0.
   geom_line(aes(y = state_tot, col = "All mosquitoes"), linewidth = 0.5) +
   scale_colour_manual(values = c("All mosquitoes" = "black", "Mosquitoes aged 0" = "skyblue"), name = "") + 
   facet_wrap(~h) +
-  theme_bw() + theme(text = element_text(size = 14), legend.position = "inside", legend.position.inside = c(0.1, 0.5)) +
+  theme(legend.position = "inside", legend.position.inside = c(0.1, 0.5)) +
   ylab("Mosquito abundance") + 
   xlab("Day of year") + 
   guides(colour = guide_legend(override.aes = list(linewidth = 2)))
@@ -568,18 +565,18 @@ auto_sens_plot <- ggplot(data = auto_sum,
   xlab("Autocorrelation (h)") +
   scale_x_continuous(breaks = seq(-0.9, 0.9, 0.2))
 
-ggsave("auto_sens_plot.pdf", 
+ggsave("auto_sens_plot.tiff", 
        auto_sens_plot,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25, 
        width = 20, height = 15,
        units = "cm")
   
 autocorr_plots <- er_plot / abundance_plot / auto_dens_plot + plot_annotation(tag_levels = 'A')
 
-ggsave("autocorr_plots.pdf", 
+ggsave("autocorr_plots.tiff", 
        autocorr_plots,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25, 
        width = 30, height = 35,
        units = "cm")
@@ -590,42 +587,16 @@ supp_auto_plots <- ggplot(data = auto_sims |> subset(sim == 1 & h %in% seq(-0.9,
   geom_line(aes(y = state_tot, col = "All mosquitoes"), linewidth = 0.5) +
   scale_colour_manual(values = c("All mosquitoes" = "black", "Mosquitoes aged 0" = "skyblue"), name = "") + 
   facet_grid(vars(h), vars(o_sd)) +
-  theme_bw() + theme(text = element_text(size = 14)) +
   ylab("Mosquito abundance") + 
   xlab("Day of year") + 
   guides(colour = guide_legend(override.aes = list(linewidth = 2)))
 
-ggsave("supp_auto_plots.pdf", 
+ggsave("supp_auto_plots.tiff", 
        supp_auto_plots,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25, 
        width = 30, height = 50,
        units = "cm")
-
-# mu_plot <- ggplot() +
-#   geom_line(data = rbind(perennial, one_peak),
-#             aes(x = timestep, y = mu_rate, 
-#                 col = season,
-#                 group = interaction(sim, season)), linewidth = 0.05, alpha = 0.25) +
-#   geom_line(data = sum_age_df, 
-#             aes(x = timestep, y = m_mu,
-#                 col = season), linewidth = 0.9) +
-#   theme_bw() +
-#   theme(legend.title = element_blank(),
-#         legend.position = "inside",
-#         legend.position.inside = c(0.1, 0.9),
-#         text = element_text(size = 14)) +
-#   ylab("Estimated mortality rate\nfrom the age distribution") +
-#   xlab("Day of the year") +
-#   #scale_y_continuous(limits = c(0.4, 0.75), labels = scales::percent) +
-#   scale_colour_manual(values = c("#D55E00", "#0072B2"))
-# 
-# ggsave("exp_plot.pdf", 
-#        exp_plot,
-#        device = "pdf",
-#        #width = 20, height = 25, 
-#        width = 35, height = 35,
-#        units = "cm")
 
 ##########################
 ##### EHT model fits #####
@@ -637,16 +608,27 @@ EHT_fit_plot <- function(out){
     geom_line(aes(x = day_continuous, y = total, col = treat), linewidth = 0.4, alpha = 0.5) +
     geom_point(aes(x = day_continuous, y = total, shape = factor(hut), col = treat, fill = treat), size = 2.75, alpha = 0.7) +
     geom_line(data = out$p$pred_m_df, aes(x = day_continuous, y = median), linewidth = 1.5) +
-    theme_bw() + ylab("Total mosquito count\nper experimental hut") + xlab("Days since start of EHT") +
+    ylab("Total mosquito count per experimental hut") + xlab("Days since start of EHT") +
     scale_shape_manual(values = c(21, 22, 23, 24, 25, 7), name = "Experimental\nhut") +
-    theme(text = element_text(size = 14), 
-          legend.text = element_text(size = 8), 
-          legend.title = element_text(size = 8),
+    theme(text = element_text(size = 18), 
+          legend.text = element_text(size = 10), 
+          legend.title = element_text(size = 10),
           legend.box = "horizontal") +
     scale_colour_viridis_d(name = "ITN") +
     scale_fill_viridis_d(name = "ITN") +
     scale_y_continuous(limits = c(0, 225), breaks = seq(0, 200, 50))
 }
+
+# calculating R-squared
+calc_r <- function(EHT_data){
+  EHT_data$df[,"pred"] <- EHT_data$p$pred_m_df[match(EHT_data$df$day_continuous, EHT_data$p$pred_m_df$day_continuous), "median"]
+  SST <- sum((EHT_data$df$total - mean(EHT_data$df$total))^2)
+  SSR <- sum((EHT_data$df$total - EHT_data$df$pred)^2)
+  print(1 - SSR/SST)
+}
+
+calc_r(EHT_autocorr$out_T)
+calc_r(EHT_autocorr$out_V)
 
 T_plot <-  EHT_fit_plot(out = EHT_autocorr$out_T) +
   ggtitle("Tengrela")
@@ -666,9 +648,7 @@ dens_plot <- function(par,
   
   ggplot(data = df) +
     geom_density(aes(par, col = study, fill = study), alpha = 0.5) +
-    theme_bw()  +
-    theme(text = element_text(size = 14),
-          axis.text.y = element_blank(),
+    theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank()) +
     ylab("Posterior density") +
     scale_fill_manual(values = c("#E69F00", "#CC79A7"), name = "") +
@@ -693,7 +673,7 @@ kappa_plot <- dens_plot("kappa") +
   scale_x_continuous(limits = c(0, 3), breaks = seq(0, 2.5, 0.5)) +
   xlab(expression(paste("Overdispersion parameter (", phi,")")))
 
-ggsave("EHT_par_plots.pdf",
+ggsave("EHT_par_plots.tiff",
        c_plot + sd_plot + kappa_plot + 
          plot_layout(nrow = 1, guides = "collect") +
          plot_annotation(tag_levels = c("A")),
@@ -737,7 +717,7 @@ EHT_sim_plot <- ggplot() +
   ylim(0, 500) +
   xlab("Day of EHT") + ylab("Simulated mosquito abundance") +
   scale_colour_manual(values = c("#E69F00", "#CC79A7"), name = "") +
-  theme(legend.position = "inside", legend.position.inside = c(0.9, 0.9))
+  theme(legend.position = "inside", legend.position.inside = c(0.9, 0.9), text = element_text(size = 18))
 
 
 ages_T <- EHT_sims_T$sims |> filter(sim %in% seq(1)) |> group_by(timestep) |> 
@@ -765,13 +745,13 @@ EHT_ages_plot <- ggplot() +
   coord_cartesian(xlim = c(0, 50)) +
   scale_x_continuous(breaks = seq(0, 50, 5)) +
   scale_y_discrete(breaks = seq(39, 1, -1)) +
-  theme(legend.position = "none") +
+  theme(legend.position = "none", text = element_text(size = 18)) +
   xlab("Age (days)") + ylab("Day of EHT") +
   scale_fill_distiller() +
   facet_wrap(~EHT) +
   ggtitle("Simulated mosquito age distributions")
 
-ggsave("EHT_plot.pdf",
+ggsave("EHT_plot.tiff",
        (T_plot + V_plot + plot_layout(guides = "collect"))/
          (h_plot + EHT_sim_plot) /
          EHT_ages_plot +
@@ -843,37 +823,36 @@ get_age_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seas
 get_age_ssm(time_in = 310, ITN_time_in = "ITN time: population decreasing", seasonality_in = "seasonal", itn_cov_in = 1)
 
 mos_plot <- ggplot() +
-  geom_line(data = ssm_plot_df,
+  geom_line(data = ssm_plot_df |> mutate(ITN_time = ifelse(ITN_time == "ITN time: population increasing", "ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")),
             aes(x = t_plot, y = value, group = interaction(seasonality, itn_cov, ITN_time, name), col = factor(itn_cov)),
             linewidth = 0.05, alpha = 0.1) +
-  geom_line(data = ssm_plot_df |> group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(value)),
+  geom_line(data = ssm_plot_df |> group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(value)) |> 
+              mutate(ITN_time = ifelse(ITN_time == "ITN time: population increasing", "ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")),
             aes(x = t_plot, y = m, group = interaction(seasonality, itn_cov, ITN_time), col = factor(itn_cov))) +
-  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
+  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365) |> mutate(ITN_time = ifelse(ITN_time == "ITN time: population increasing", "ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")), 
              aes(xintercept = ITN_IRS_on),
              col = "black", linetype = 2) +
-  facet_grid(vars(seasonality), vars(factor(ITN_time, levels = c("ITN time: population increasing", "ITN time: population decreasing")))) +
-  theme_bw() +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage") +
+  facet_grid(vars(seasonality), vars(factor(ITN_time, levels = c("ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")))) +
+  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage", labels = c("0%", "100%")) +
   xlab("Day") +
   ylab("Total mosquito abundance") 
 
 age_plot <- 
   ggplot() + 
-  geom_line(data = ssm_plot_df |> na.omit(),
+  geom_line(data = ssm_plot_df |> na.omit() |> mutate(ITN_time = ifelse(ITN_time == "ITN time: population increasing", "ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")),
             aes(x = t_plot, y = mean_age, 
                 group = interaction(seasonality, itn_cov, ITN_time, name), 
                 col = factor(itn_cov)),
             linewidth = 0.05, alpha = 0.1) +
   geom_line(data = ssm_plot_df |> na.omit() |> 
-              group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(mean_age)),
+              group_by(seasonality, itn_cov, ITN_time, t_plot) |> summarise(m = mean(mean_age))  |> mutate(ITN_time = ifelse(ITN_time == "ITN time: population increasing", "ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")),
             aes(x = t_plot, y = m, group = interaction(seasonality, itn_cov, ITN_time), col = factor(itn_cov))) +
-  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
+  geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365) |> mutate(ITN_time = ifelse(ITN_time == "ITN time: population increasing", "ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")), 
              aes(xintercept = ITN_IRS_on),
              col = "black", linetype = 2) +
   facet_grid(vars(seasonality),
-             vars(factor(ITN_time, levels = c("ITN time: population increasing", "ITN time: population decreasing")))) +
-  theme_bw() +
-  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage") +
+             vars(factor(ITN_time, levels = c("ITN distribution when abundance is increasing", "ITN distribution when abundance is decreasing")))) +
+  scale_colour_manual(values = c("#E69F00", "#56B4E9"), name = "ITN coverage", labels = c("0%", "100%")) +
   xlab("Day") +
   ylab("Mean mosquito age (days)") +
   coord_cartesian(ylim = c(0, 30))
@@ -890,23 +869,22 @@ diff_plot <- ggplot() +
   geom_line(data = mean_age_diff |> na.omit() |> group_by(seasonality, t_plot, ITN_time) |> summarise(m = mean(diff_age)),
             aes(x = t_plot, y = m, col = ITN_time),
             linewidth = 1) +
-  
   facet_wrap(~seasonality) +
   coord_cartesian(ylim = c(-5, 30))+
-  scale_colour_manual(values = c("skyblue", "#009E73"), name = "") +
+  scale_colour_manual(values = c("skyblue", "#009E73"), name = "", labels = c("ITN distribution when abundance is decreasing", "ITN distribution when abundance is increasing")) +
   xlab("Day") +
   ylab("Increase in mean mosquito age without ITNs (days)") +
-  theme_bw() +
   geom_vline(data = ssm_params |> mutate(ITN_IRS_on = ITN_IRS_on - 4 * 365), 
              aes(xintercept = ITN_IRS_on, col = ITN_time),
-             linetype = 2)
+             linetype = 2) +
+  theme(legend.position = "top")
 
 int_plots <- mos_plot + age_plot + diff_plot + 
   plot_layout(nrow = 3) + plot_annotation(tag_levels = 'A')
 
-ggsave("int_plots.pdf", 
+ggsave("int_plots.tiff", 
        int_plots,
-       device = "pdf",
+       device = "tiff",
        #width = 20, height = 25, 
        width = 30, height = 40,
        units = "cm")
